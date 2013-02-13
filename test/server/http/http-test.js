@@ -35,6 +35,30 @@ vows.describe('director/http').addBatch({
         assert.isObject(router.routes.hello);
         assert.isFunction(router.routes.hello.get);
       },
+      "the dispatch() method": {
+        "/hello": function(router) {
+          var req = { method: 'GET', headers: {}, url: '/hello' };
+          var writeHeadCalled, endCalled;
+          var res = {
+            writeHead: function(statusCode, headers) {
+              writeHeadCalled = true;
+              assert.equal(statusCode, 200);
+              assert.deepEqual(headers, { 'Content-Type': 'text/plain' });
+            },
+            end: function() {
+              endCalled = true;
+            }
+          };
+          assert.isTrue(router.dispatch(req, res));
+          assert.isTrue(writeHeadCalled);
+          assert.isTrue(endCalled);
+        },
+        "not found": function(router) {
+          var req = { method: 'GET', url: '/404' };
+          var res = {};
+          assert.isTrue(router.dispatch(req, res));
+        }
+      },
       "when passed to an http.Server instance": {
         topic: function (router) {
           router.get(/foo\/bar\/(\w+)/, handlers.respondWithId);
